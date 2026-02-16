@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useConfig } from '../../context/ConfigContext';
+import { useAuth } from '../../context/AuthContext';
 import {
     LayoutDashboard,
     Package,
@@ -8,15 +10,18 @@ import {
     Truck,
     ShoppingCart,
     FileText,
-    Settings,
+    Settings as SettingsIcon,
     ChevronLeft,
     ChevronRight,
     BarChart3,
-    History
+    History,
+    Percent
 } from 'lucide-react';
 import './Sidebar.css';
 
 const Sidebar = () => {
+    const { isFeatureEnabled } = useConfig();
+    const { isSuperAdmin, isAdmin } = useAuth();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const menuItems = [
@@ -25,12 +30,24 @@ const Sidebar = () => {
         { name: 'Categorías', icon: <Tags size={20} />, path: '/categorias' },
         { name: 'Clientes', icon: <Users size={20} />, path: '/clientes' },
         { name: 'Proveedores', icon: <Truck size={20} />, path: '/proveedores' },
+        { name: 'Ofertas', icon: <Percent size={20} />, path: '/ofertas', feature: 'offers' },
         { name: 'Compras', icon: <ShoppingCart size={20} />, path: '/compras' },
         { name: 'Ventas', icon: <FileText size={20} />, path: '/ventas' },
         { name: 'Logs', icon: <History size={20} />, path: '/logs' },
         { name: 'Reportes', icon: <BarChart3 size={20} />, path: '/reportes' },
-        { name: 'Configuración', icon: <Settings size={20} />, path: '/config' },
+        { name: 'Configuración', icon: <SettingsIcon size={20} />, path: '/config' },
     ];
+
+    const filteredMenuItems = menuItems.filter(item => {
+        // Primero chequear si la feature está prendida
+        if (item.feature && !isFeatureEnabled(item.feature)) return false;
+
+        // Luego chequear permisos por rol
+        if (item.path === '/config' && !isAdmin) return false;
+        if (item.path === '/ofertas' && !isAdmin) return false;
+
+        return true;
+    });
 
     return (
         <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -42,7 +59,7 @@ const Sidebar = () => {
             </button>
 
             <div className="sidebar-menu">
-                {menuItems.map((item) => (
+                {filteredMenuItems.map((item) => (
                     <NavLink
                         key={item.path}
                         to={item.path}

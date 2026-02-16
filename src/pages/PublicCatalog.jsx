@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Star, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useConfig } from '../context/ConfigContext';
+import OfferCarousel from '../components/catalog/OfferCarousel';
+import {
+    Search,
+    ShoppingCart,
+    Star, Loader2
+} from 'lucide-react';
 import { productService } from '../services/productService';
 import './PublicCatalog.css';
 
 const PublicCatalog = () => {
+    const navigate = useNavigate();
+    const { isFeatureEnabled } = useConfig();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,6 +48,10 @@ const PublicCatalog = () => {
                 <p>Encuentra todo lo que necesitas para tu proyecto</p>
             </header>
 
+            {/* Banner de Ofertas (Condicional) */}
+            {isFeatureEnabled('offers') && <OfferCarousel />}
+
+            {/* Barra de Búsqueda y Filtros */}
             {products.length === 0 ? (
                 <div className="no-products">
                     <p>No hay productos disponibles en este momento.</p>

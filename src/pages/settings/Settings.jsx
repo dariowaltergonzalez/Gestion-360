@@ -10,9 +10,13 @@ import {
     Github
 } from 'lucide-react';
 import { configService } from '../../services/configService';
+import { useConfig } from '../../context/ConfigContext';
+import { useAuth } from '../../context/AuthContext';
 import '../../styles/Management.css';
 
 const Settings = () => {
+    const { refreshConfig } = useConfig();
+    const { isSuperAdmin } = useAuth();
     const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -42,6 +46,7 @@ const Settings = () => {
         setSaving(true);
         try {
             await configService.updateFeatureFlag(feature, newValue);
+            await refreshConfig(); // Actualizar contexto global
             setConfig(prev => ({
                 ...prev,
                 features: {
@@ -71,59 +76,69 @@ const Settings = () => {
             </div>
 
             <div className="management-card" style={{ maxWidth: '800px' }}>
-                <div className="settings-section">
-                    <h3 className="section-title">
-                        <Database size={18} /> Módulos y Feature Flags
-                    </h3>
-                    <p className="text-muted mb-4" style={{ fontSize: '0.9rem' }}>
-                        Active o desactive módulos completos del sistema. Estas configuraciones afectan a todos los usuarios en tiempo real.
-                    </p>
+                {isSuperAdmin ? (
+                    <div className="settings-section">
+                        <h3 className="section-title">
+                            <Database size={18} /> Módulos y Feature Flags
+                        </h3>
+                        <p className="text-muted mb-4" style={{ fontSize: '0.9rem' }}>
+                            Active o desactive módulos completos del sistema. Estas configuraciones afectan a todos los usuarios en tiempo real.
+                        </p>
 
-                    <div className="feature-flags-list">
-                        {/* OFERTAS */}
-                        <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3">
-                            <div className="feature-info">
-                                <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Módulo de Ofertas</h4>
-                                <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
-                                    Habilita el banner de carrusel en el catálogo y la aplicación de descuentos.
-                                </p>
+                        <div className="feature-flags-list">
+                            {/* OFERTAS */}
+                            <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3">
+                                <div className="feature-info">
+                                    <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Módulo de Ofertas</h4>
+                                    <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
+                                        Habilita el banner de carrusel en el catálogo y la aplicación de descuentos.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => handleToggle('offers')}
+                                    disabled={saving}
+                                    style={{ border: 'none', background: 'none', cursor: 'pointer' }}
+                                >
+                                    {config.features.offers ? (
+                                        <ToggleRight size={40} className="text-primary" />
+                                    ) : (
+                                        <ToggleLeft size={40} className="text-muted" />
+                                    )}
+                                </button>
                             </div>
-                            <button
-                                onClick={() => handleToggle('offers')}
-                                disabled={saving}
-                                style={{ border: 'none', background: 'none', cursor: 'pointer' }}
-                            >
-                                {config.features.offers ? (
-                                    <ToggleRight size={40} className="text-primary" />
-                                ) : (
-                                    <ToggleLeft size={40} className="text-muted" />
-                                )}
-                            </button>
-                        </div>
 
-                        {/* COMPRAS (Placeholder for future) */}
-                        <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3 opacity-50">
-                            <div className="feature-info">
-                                <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Módulo de Compras</h4>
-                                <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
-                                    Gestión de pedidos a proveedores y stock entrante.
-                                </p>
+                            {/* COMPRAS (Placeholder for future) */}
+                            <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3 opacity-50">
+                                <div className="feature-info">
+                                    <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Módulo de Compras</h4>
+                                    <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
+                                        Gestión de pedidos a proveedores y stock entrante.
+                                    </p>
+                                </div>
+                                <ToggleLeft size={40} className="text-muted" />
                             </div>
-                            <ToggleLeft size={40} className="text-muted" />
-                        </div>
 
-                        {/* REPORTE AVANZADO (Placeholder for future) */}
-                        <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3 opacity-50">
-                            <div className="feature-info">
-                                <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Reportes Avanzados</h4>
-                                <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
-                                    Gráficos estadísticos y proyecciones de ventas.
-                                </p>
+                            {/* REPORTE AVANZADO (Placeholder for future) */}
+                            <div className="feature-flag-item d-flex justify-content-between align-items-center p-3 border rounded mb-3 opacity-50">
+                                <div className="feature-info">
+                                    <h4 className="m-0" style={{ fontSize: '1.05rem' }}>Reportes Avanzados</h4>
+                                    <p className="text-muted m-0" style={{ fontSize: '0.85rem' }}>
+                                        Gráficos estadísticos y proyecciones de ventas.
+                                    </p>
+                                </div>
+                                <ToggleLeft size={40} className="text-muted" />
                             </div>
-                            <ToggleLeft size={40} className="text-muted" />
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="settings-section text-center p-5">
+                        <AlertTriangle size={48} className="text-warning mb-3 mx-auto" />
+                        <h3>Acceso Restringido</h3>
+                        <p className="text-muted">
+                            Solo el personal de ingeniería (SuperAdmin) puede modificar los módulos del núcleo del sistema.
+                        </p>
+                    </div>
+                )}
 
                 {message.text && (
                     <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mt-3 d-flex align-items-center gap-2`}>

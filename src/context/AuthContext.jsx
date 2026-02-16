@@ -7,6 +7,7 @@ import {
     sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '../firebase/config';
+import { userService } from '../services/userService';
 
 const AuthContext = createContext();
 
@@ -16,6 +17,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
     function signup(email, password) {
@@ -35,8 +37,18 @@ export function AuthProvider({ children }) {
     }
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
+            if (user) {
+                try {
+                    const profile = await userService.getUserProfile(user.uid);
+                    setUserProfile(profile);
+                } catch (error) {
+                    console.error("Error getting user profile on auth change:", error);
+                }
+            } else {
+                setUserProfile(null);
+            }
             setLoading(false);
         });
 
@@ -45,6 +57,11 @@ export function AuthProvider({ children }) {
 
     const value = {
         currentUser,
+        userRole: userProfile?.role || 'Operador', // Default if no profile
+        userProfile,
+        isSuperAdmin: userProfile?.role === 'SuperAdmin',
+        isAdmin: userProfile?.role === 'Admin' || userProfile?.role === 'SuperAdmin',
+        isOperador: userProfile?.role === 'Operador',
         signup,
         login,
         logout,
