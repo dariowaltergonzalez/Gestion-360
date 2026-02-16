@@ -10,6 +10,8 @@ import ProductsList from './pages/products/ProductsList';
 import ProductForm from './pages/products/ProductForm';
 import CategoriesList from './pages/categories/CategoriesList';
 import CategoryForm from './pages/categories/CategoryForm';
+import ClientsList from './pages/clients/ClientsList';
+import ClientForm from './pages/clients/ClientForm';
 import './App.css';
 
 // Componente para proteger rutas privadas
@@ -126,6 +128,52 @@ function App() {
               <PrivateRoute>
                 <AdminLayout>
                   <CategoryForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Gestión de Clientes y Proveedores (Modelo Unificado) */}
+          <Route
+            path="/clientes"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ClientsList />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/clientes/nuevo"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ClientForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/clientes/editar/:id"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ClientForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* La ruta /proveedores también usa el mismo sistema unificado */}
+          <Route
+            path="/proveedores"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ClientsList initialType="Proveedor" />
                 </AdminLayout>
               </PrivateRoute>
             }
