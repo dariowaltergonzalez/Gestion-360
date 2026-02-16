@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, XCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, XCircle, CheckCircle2 } from 'lucide-react';
 import { productService } from '../../services/productService';
 import { categoryService } from '../../services/categoryService';
 import '../../styles/Management.css';
@@ -23,6 +23,7 @@ const ProductForm = () => {
 
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
         fetchCategories();
@@ -114,10 +115,14 @@ const ProductForm = () => {
             } else {
                 await productService.createProduct(dataToSave);
             }
-            alert(`Producto ${isEditing ? 'actualizado' : 'creado'} con éxito`);
-            navigate('/productos');
+            navigate('/productos', {
+                state: {
+                    message: `Producto ${isEditing ? 'actualizado' : 'creado'} con éxito`
+                }
+            });
         } catch (error) {
-            alert(error.message);
+            console.error("Error saving product:", error);
+            setMessage({ type: 'error', text: error.message || 'Error al guardar el producto' });
         } finally {
             setSubmitting(false);
         }
@@ -133,6 +138,13 @@ const ProductForm = () => {
                     <h1>{isEditing ? 'Editar Producto' : 'Nuevo Producto'}</h1>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'} mb-4`}>
+                    {message.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                    {message.text}
+                </div>
+            )}
 
             <div className="form-container">
                 <form onSubmit={handleSubmit}>

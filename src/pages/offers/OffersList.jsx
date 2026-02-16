@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Plus,
     ArrowLeft,
@@ -12,7 +12,9 @@ import {
     Layers,
     ChevronLeft,
     ChevronRight,
-    AlertCircle
+    AlertCircle,
+    CheckCircle2,
+    X
 } from 'lucide-react';
 import { offerService } from '../../services/offerService';
 import '../../styles/Management.css';
@@ -23,6 +25,23 @@ const OffersList = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('Todos');
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.message) {
+            setMessage({ type: 'success', text: location.state.message });
+            window.scrollTo(0, 0);
+
+            // Limpiar el mensaje de la UI después de un tiempo
+            const timer = setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+
+            // Limpiar el estado de la navegación para que no reaparezca en F5
+            window.history.replaceState({}, document.title);
+
+            return () => clearTimeout(timer);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         fetchOffers();
@@ -44,9 +63,13 @@ const OffersList = () => {
         if (window.confirm(`¿Está seguro de ${currentStatus ? 'desactivar' : 'activar'} esta oferta?`)) {
             try {
                 await offerService.toggleOfferStatus(id, currentStatus);
+                setMessage({ type: 'success', text: `Oferta ${currentStatus ? 'desactivada' : 'activada'} con éxito` });
+                window.scrollTo(0, 0);
                 fetchOffers();
+                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
             } catch (error) {
-                alert("Error al cambiar el estado de la oferta");
+                console.error("Error toggling status:", error);
+                setMessage({ type: 'error', text: 'Error al cambiar el estado' });
             }
         }
     };
@@ -94,6 +117,20 @@ const OffersList = () => {
                     </button>
                 </div>
             </div>
+
+            {/* Alerta de Éxito / Error (Visible al volver de Crear/Editar o al Activar/Desactivar) */}
+            {message && message.text && (
+                <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-4`} style={{ position: 'sticky', top: '20px', zIndex: 1000 }}>
+                    {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                    <div style={{ flex: 1 }}>{message.text}</div>
+                    <button
+                        onClick={() => setMessage({ type: '', text: '' })}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: '4px' }}
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
 
             <div className="management-card">
                 <div className="filters-bar">

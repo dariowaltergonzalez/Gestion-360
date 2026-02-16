@@ -8,27 +8,44 @@ import {
     Star, Loader2
 } from 'lucide-react';
 import { productService } from '../services/productService';
+import { offerService } from '../services/offerService';
+import { priceUtils } from '../utils/priceUtils';
 import './PublicCatalog.css';
 
 const PublicCatalog = () => {
     const navigate = useNavigate();
     const { isFeatureEnabled } = useConfig();
     const [products, setProducts] = useState([]);
+    const [offers, setOffers] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchProducts();
+        loadData();
     }, []);
 
-    const fetchProducts = async () => {
+    const loadData = async () => {
+        setLoading(true);
         try {
-            // Obtenemos solo productos activos para el catálogo público
-            const allProducts = await productService.getAllProducts();
-            setProducts(allProducts.filter(p => p.Activo));
+            await Promise.all([
+                fetchProducts(),
+                fetchActiveOffers()
+            ]);
         } catch (error) {
-            console.error("Error al cargar productos:", error);
+            console.error("Error loading catalog data:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchProducts = async () => {
+        const allProducts = await productService.getAllProducts();
+        setProducts(allProducts.filter(p => p.Activo));
+    };
+
+    const fetchActiveOffers = async () => {
+        if (isFeatureEnabled('offers')) {
+            const activeOffers = await offerService.getActiveOffers();
+            setOffers(activeOffers);
         }
     };
 
@@ -71,15 +88,35 @@ const PublicCatalog = () => {
                             <div className="product-info">
                                 <div className="rating">
                                     <Star size={14} fill="var(--warning)" color="var(--warning)" />
-                                    <span>4.5</span> {/* Rating placeholder por ahora */}
+                                    <span>4.5</span>
                                 </div>
                                 <h3>{product.Nombre}</h3>
-                                <div className="price-row">
-                                    <span className="price">${Number(product.Precio).toLocaleString()}</span>
-                                    <button className="add-to-cart">
-                                        <ShoppingCart size={18} />
-                                    </button>
-                                </div>
+
+                                {(() => {
+                                    const { finalPrice, originalPrice, hasOffer, appliedOffer } =
+                                        priceUtils.calculateDiscountedPrice(product, offers);
+
+                                    return (
+                                        <div className="price-row">
+                                            <div className="price-container">
+                                                {hasOffer ? (
+                                                    <>
+                                                        <span className="current-price">{priceUtils.formatPrice(finalPrice)}</span>
+                                                        <span className="old-price">{priceUtils.formatPrice(originalPrice)}</span>
+                                                        <span className="discount-tag">
+                                                            {appliedOffer.Tipo === 'Porcentual' ? `-${appliedOffer.porcentajeDescuento}%` : 'OFERTA'}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="current-price">{priceUtils.formatPrice(originalPrice)}</span>
+                                                )}
+                                            </div>
+                                            <button className="add-to-cart">
+                                                <ShoppingCart size={18} />
+                                            </button>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                     ))}

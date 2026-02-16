@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, XCircle } from 'lucide-react';
+import { ArrowLeft, Save, XCircle, CheckCircle2 } from 'lucide-react';
 import { categoryService } from '../../services/categoryService';
 import '../../styles/Management.css';
 
@@ -16,6 +16,7 @@ const CategoryForm = () => {
 
     const [errors, setErrors] = useState({});
     const [submitting, setSubmitting] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
         if (isEditing) {
@@ -72,10 +73,14 @@ const CategoryForm = () => {
             } else {
                 await categoryService.createCategory(formData);
             }
-            alert(`Categoría ${isEditing ? 'actualizada' : 'creada'} con éxito`);
-            navigate('/categorias');
+            navigate('/categorias', {
+                state: {
+                    message: `Categoría ${isEditing ? 'actualizada' : 'creada'} con éxito`
+                }
+            });
         } catch (error) {
-            alert(error.message);
+            console.error("Error saving category:", error);
+            setMessage({ type: 'error', text: error.message || 'Error al guardar la categoría' });
         } finally {
             setSubmitting(false);
         }
@@ -91,6 +96,13 @@ const CategoryForm = () => {
                     <h1>{isEditing ? 'Editar Categoría' : 'Nueva Categoría'}</h1>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'} mb-4`}>
+                    {message.type === 'error' ? <XCircle size={18} /> : <CheckCircle2 size={18} />}
+                    {message.text}
+                </div>
+            )}
 
             <div className="form-container">
                 <form onSubmit={handleSubmit}>

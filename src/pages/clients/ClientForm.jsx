@@ -9,7 +9,8 @@ import {
     Mail,
     Phone,
     MapPin,
-    Info
+    Info,
+    CheckCircle2
 } from 'lucide-react';
 import { clientService } from '../../services/clientService';
 import '../../styles/Management.css';
@@ -41,6 +42,7 @@ const ClientForm = () => {
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
         if (isEditing) {
@@ -121,10 +123,14 @@ const ClientForm = () => {
             } else {
                 await clientService.createClient(finalData);
             }
-            navigate(finalData.Tipo === 'Proveedor' ? '/proveedores' : '/clientes');
+            navigate(finalData.Tipo === 'Proveedor' ? '/proveedores' : '/clientes', {
+                state: {
+                    message: `${finalData.Tipo} ${isEditing ? 'actualizado' : 'creado'} con éxito`
+                }
+            });
         } catch (error) {
             console.error("Error al guardar cliente:", error);
-            alert(error.message || "Error al guardar");
+            setMessage({ type: 'error', text: error.message || "Error al guardar" });
         } finally {
             setIsSaving(false);
         }
@@ -142,6 +148,13 @@ const ClientForm = () => {
                     <h1>{isEditing ? 'Editar' : 'Nuevo'} {formData.Tipo}</h1>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'} mb-4`}>
+                    {message.type === 'error' ? <X size={18} /> : <CheckCircle2 size={18} />}
+                    {message.text}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="management-card form-grid-layout">
                 <div className="form-section">

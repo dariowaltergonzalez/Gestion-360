@@ -44,6 +44,7 @@ const OfferForm = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [message, setMessage] = useState({ type: '', text: '' });
 
     useEffect(() => {
         loadDependecies();
@@ -98,8 +99,8 @@ const OfferForm = () => {
         try {
             const dataToSave = {
                 ...formData,
-                FechaInicio: new Date(formData.FechaInicio),
-                FechaFin: new Date(formData.FechaFin),
+                FechaInicio: new Date(formData.FechaInicio + 'T00:00:00'),
+                FechaFin: new Date(formData.FechaFin + 'T23:59:59'),
                 // Asegurar que los números sean números
                 porcentajeDescuento: Number(formData.porcentajeDescuento),
                 descuentoFijo: Number(formData.descuentoFijo),
@@ -112,10 +113,16 @@ const OfferForm = () => {
             } else {
                 await offerService.createOffer(dataToSave);
             }
-            navigate('/ofertas');
+
+            // Redirigir con mensaje de éxito
+            navigate('/ofertas', {
+                state: {
+                    message: `Oferta ${isEditing ? 'actualizada' : 'creada'} con éxito`
+                }
+            });
         } catch (error) {
             console.error("Error saving offer:", error);
-            alert("Error al guardar la oferta");
+            setMessage({ type: 'error', text: 'Error al guardar la oferta' });
         } finally {
             setIsSaving(false);
         }
@@ -133,6 +140,13 @@ const OfferForm = () => {
                     <h1>{isEditing ? 'Editar' : 'Nueva'} Oferta</h1>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'error' ? 'alert-danger' : 'alert-success'}`}>
+                    {message.type === 'error' ? <X size={18} /> : <Save size={18} />}
+                    {message.text}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="management-card form-grid-layout">
                 <div className="form-section">

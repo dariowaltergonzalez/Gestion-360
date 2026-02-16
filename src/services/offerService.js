@@ -35,13 +35,14 @@ export const offerService = {
         try {
             const q = query(collection(db, COLLECTION_NAME), orderBy('FechaCreacion', 'desc'));
             const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
+            const offers = querySnapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data(),
                 FechaInicio: doc.data().FechaInicio?.toDate(),
                 FechaFin: doc.data().FechaFin?.toDate(),
                 FechaCreacion: doc.data().FechaCreacion?.toDate()
             }));
+            return offers;
         } catch (error) {
             console.error("Error fetching all offers:", error);
             throw error;
@@ -51,24 +52,40 @@ export const offerService = {
     // Obtener solo ofertas activas (para catálogo público)
     async getActiveOffers() {
         try {
-            const now = Timestamp.now();
+            const now = new Date();
             const q = query(
                 collection(db, COLLECTION_NAME),
-                where('Activo', '==', true),
-                where('FechaInicio', '<=', now)
+                where('Activo', '==', true)
             );
             const querySnapshot = await getDocs(q);
 
-            // Firebase no permite múltiples desigualdades en diferentes campos fácilmente sin índices compuestos,
-            // así que filtramos la FechaFin en memoria para simplificar inicialmente
-            return querySnapshot.docs
+            const activeOffers = querySnapshot.docs
                 .map(doc => ({
                     id: doc.id,
                     ...doc.data(),
                     FechaInicio: doc.data().FechaInicio?.toDate(),
                     FechaFin: doc.data().FechaFin?.toDate()
                 }))
-                .filter(offer => offer.FechaFin >= new Date());
+                .filter(offer => {
+                    // 1. Validar que tenga FechaInicio y que ya haya comenzado
+                    if (!offer.FechaInicio) return false;
+
+                    const startDate = new Date(offer.FechaInicio);
+                    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                    // Si la fecha de inicio es hoy o en el pasado
+                    const hasStarted = startDate <= now;
+
+                    // 2. Validar que no haya expirado
+                    if (!offer.FechaFin) return hasStarted;
+
+                    const expiration = new Date(offer.FechaFin);
+                    const hasNotExpired = expiration >= startOfToday;
+
+                    return hasStarted && hasNotExpired;
+                });
+
+            return activeOffers;
         } catch (error) {
             console.error("Error fetching active offers:", error);
             throw error;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Plus,
     Search,
@@ -9,7 +9,10 @@ import {
     ChevronRight,
     Tags,
     ArrowLeft,
-    FileDown
+    FileDown,
+    CheckCircle2,
+    AlertCircle,
+    X
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,6 +25,18 @@ const CategoriesList = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('Todos');
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.message) {
+            setMessage({ type: 'success', text: location.state.message });
+            window.scrollTo(0, 0);
+            const timer = setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+            window.history.replaceState({}, document.title);
+            return () => clearTimeout(timer);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         fetchCategories();
@@ -43,9 +58,13 @@ const CategoriesList = () => {
         if (window.confirm(`¿Está seguro de ${action} esta categoría?`)) {
             try {
                 await categoryService.toggleStatus(category.id, category.Activo);
+                setMessage({ type: 'success', text: `Categoría ${category.Activo ? 'desactivada' : 'activada'} con éxito` });
+                window.scrollTo(0, 0);
                 fetchCategories();
+                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
             } catch (error) {
-                alert("Error al cambiar estado");
+                console.error("Error toggling status:", error);
+                setMessage({ type: 'error', text: 'Error al cambiar estado' });
             }
         }
     };
@@ -113,6 +132,16 @@ const CategoriesList = () => {
                     </button>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-4`} style={{ position: 'sticky', top: '20px', zIndex: 1000 }}>
+                    {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                    <div style={{ flex: 1 }}>{message.text}</div>
+                    <button onClick={() => setMessage({ type: '', text: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
 
             <div className="management-card">
                 <div className="filters-bar">

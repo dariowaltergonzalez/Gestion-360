@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Plus,
     ArrowLeft,
@@ -9,7 +9,10 @@ import {
     Power,
     FileDown,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    CheckCircle2,
+    AlertCircle,
+    X
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,6 +25,18 @@ const ProductsList = () => {
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('Todos');
     const [searchTerm, setSearchTerm] = useState('');
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.message) {
+            setMessage({ type: 'success', text: location.state.message });
+            window.scrollTo(0, 0);
+            const timer = setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+            window.history.replaceState({}, document.title);
+            return () => clearTimeout(timer);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         fetchProducts();
@@ -42,9 +57,13 @@ const ProductsList = () => {
         if (window.confirm(`¿Está seguro de ${currentStatus ? 'desactivar' : 'activar'} este producto?`)) {
             try {
                 await productService.toggleStatus(id, currentStatus);
+                setMessage({ type: 'success', text: `Producto ${currentStatus ? 'desactivado' : 'activado'} con éxito` });
+                window.scrollTo(0, 0);
                 fetchProducts();
+                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
             } catch (error) {
-                alert("Error al cambiar estado");
+                console.error("Error toggling status:", error);
+                setMessage({ type: 'error', text: 'Error al cambiar estado' });
             }
         }
     };
@@ -113,6 +132,16 @@ const ProductsList = () => {
                     </button>
                 </div>
             </div>
+
+            {message.text && (
+                <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-4`} style={{ position: 'sticky', top: '20px', zIndex: 1000 }}>
+                    {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                    <div style={{ flex: 1 }}>{message.text}</div>
+                    <button onClick={() => setMessage({ type: '', text: '' })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
+                        <X size={18} />
+                    </button>
+                </div>
+            )}
 
             <div className="management-card">
                 <div className="filters-bar">

@@ -10,6 +10,10 @@ Roles:
 * SuperAdmin. Es el programador del sistema. Para tareas de configuracion y acceso total.
 Aclaracion: SuperAdmin > Admin > Operador.
 
+> [!IMPORTANT]
+> **Gestión de Roles para Nuevos Usuarios:**
+> Cuando se registra un nuevo usuario (Admin u Operador) con email y password, Firebase genera un **UID** único. Para que el sistema le asigne los permisos correctos, el **SuperAdmin** debe crear manualmente un documento en la colección `users` de Firestore. El ID del documento debe ser el **UID** del usuario y debe contener un campo `role` (string) con el valor correspondiente (`Admin` u `Operador`). Sin este paso, el usuario tendrá el rol `Operador` por defecto y no podrá ver las "Features" ni la configuración total.
+
 1.1 SEGURIDAD Y ACCESOS
 *   **Autenticación:** Gestionada vía Firebase Auth (Email/Password).
 *   **Recuperación de Contraseña (Reset Pass):** Se implementa un flujo de recuperación mediante envío de email automático desde Firebase. El enlace redirige a una página segura para el cambio de credenciales.
@@ -95,7 +99,11 @@ Regla de Validacion: Se implementara una validacion dual:
 *   **En tiempo real (on-change/on-blur):** Feedback visual inmediato mientras el usuario completa los campos.
 *   **Al Guardar (submit):** Re-validacion total de todos los campos antes de impactar en la base de datos.
 Acciones: Botón "Guardar" y botón "Cancelar" que vuelve a la pantalla de gestion que la llamo.
-Notificaciones emergentes (Toasts) temporales para informar acciones.
+Feedback Post-Operación (Ley del Sticky): 
+*   **Éxito:** Al guardar con éxito, se redirigirá a la pantalla de gestión con un mensaje de éxito visible.
+*   **Error:** Si hay un error en el servidor, se mostrará una alerta de error en la pantalla actual.
+*   **Formato:** Las alertas de éxito/error deben ser **"Sticky"** (fijadas progresivamente en la parte superior del contenedor de gestión) para asegurar que el usuario siempre las vea tras un scroll automático hacia arriba.
+*   **Persistencia:** Los mensajes de éxito deben desaparecer automáticamente después de unos segundos, pero deben permitir el cierre manual.
 
 7. CONFIGURACIÓN DEL NEGOCIO. Empresa
 Perfil de Empresa: Pantalla para que el Admin configure:
