@@ -143,7 +143,7 @@ function App() {
             element={
               <PrivateRoute>
                 <AdminLayout>
-                  <ClientsList />
+                  <ClientsList initialType="Cliente" />
                 </AdminLayout>
               </PrivateRoute>
             }

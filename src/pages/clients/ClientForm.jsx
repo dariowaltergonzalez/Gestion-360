@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
     ArrowLeft,
     Save,
@@ -16,14 +16,18 @@ import '../../styles/Management.css';
 
 const ClientForm = () => {
     const { id } = useParams();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const isEditing = !!id;
+
+    const queryType = searchParams.get('type');
+    const defaultType = queryType === 'Proveedor' ? 'Proveedor' : 'Cliente';
 
     const [formData, setFormData] = useState({
         Nombre: '',
         Apellido: '',
         RazonSocial: '',
-        Tipo: 'Cliente',
+        Tipo: defaultType,
         Email: '',
         Telefono: '',
         Direccion: '',
@@ -117,7 +121,7 @@ const ClientForm = () => {
             } else {
                 await clientService.createClient(finalData);
             }
-            navigate('/clientes');
+            navigate(finalData.Tipo === 'Proveedor' ? '/proveedores' : '/clientes');
         } catch (error) {
             console.error("Error al guardar cliente:", error);
             alert(error.message || "Error al guardar");
@@ -132,7 +136,7 @@ const ClientForm = () => {
         <div className="management-container">
             <div className="management-header">
                 <div className="header-title">
-                    <button onClick={() => navigate('/clientes')} className="btn-secondary">
+                    <button onClick={() => navigate(formData.Tipo === 'Proveedor' ? '/proveedores' : '/clientes')} className="btn-secondary">
                         <ArrowLeft size={18} /> Volver
                     </button>
                     <h1>{isEditing ? 'Editar' : 'Nuevo'} {formData.Tipo}</h1>
@@ -247,7 +251,7 @@ const ClientForm = () => {
                 </div>
 
                 <div className="form-actions">
-                    <button type="button" onClick={() => navigate('/clientes')} className="btn-secondary" disabled={isSaving}>
+                    <button type="button" onClick={() => navigate(formData.Tipo === 'Proveedor' ? '/proveedores' : '/clientes')} className="btn-secondary" disabled={isSaving}>
                         <X size={18} /> Cancelar
                     </button>
                     <button type="submit" className="btn-primary" disabled={isSaving}>

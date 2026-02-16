@@ -29,6 +29,10 @@ const ClientsList = ({ initialType = 'Todos' }) => {
         fetchClients();
     }, []);
 
+    useEffect(() => {
+        setFilterType(initialType);
+    }, [initialType]);
+
     const fetchClients = async () => {
         try {
             const data = await clientService.getAllClients();
@@ -108,14 +112,17 @@ const ClientsList = ({ initialType = 'Todos' }) => {
                     <button onClick={() => navigate('/dashboard')} className="btn-secondary">
                         <ArrowLeft size={18} /> Volver
                     </button>
-                    <h1>Gestión de Clientes</h1>
+                    <h1>Gestión de {filterType === 'Todos' ? 'Clientes y Prov.' : `${filterType}s`}</h1>
                 </div>
                 <div className="header-actions">
                     <button onClick={exportToPDF} className="btn-secondary" title="Exportar PDF">
                         <FileDown size={18} /> Reporte PDF
                     </button>
-                    <button onClick={() => navigate('/clientes/nuevo')} className="btn-primary">
-                        <Plus size={18} /> Agregar Cliente/Prov
+                    <button
+                        onClick={() => navigate(`/clientes/nuevo?type=${filterType === 'Todos' ? 'Cliente' : filterType}`)}
+                        className="btn-primary"
+                    >
+                        <Plus size={18} /> Agregar {filterType === 'Todos' ? 'Cliente/Prov' : filterType}
                     </button>
                 </div>
             </div>
