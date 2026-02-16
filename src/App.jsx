@@ -6,6 +6,7 @@ import PublicCatalog from './pages/PublicCatalog';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
 import ProductsList from './pages/products/ProductsList';
 import ProductForm from './pages/products/ProductForm';
 import CategoriesList from './pages/categories/CategoriesList';
@@ -53,6 +54,10 @@ function App() {
 
           <Route path="/signup" element={
             currentUser ? <Navigate replace to="/dashboard" /> : <Signup />
+          } />
+
+          <Route path="/forgot-password" element={
+            currentUser ? <Navigate replace to="/dashboard" /> : <ForgotPassword />
           } />
 
           {/* Rutas Privadas (Admin/Operador) */}
