@@ -43,9 +43,7 @@ function App() {
 
         <Routes>
           {/* Ruta Pública: Catálogo */}
-          <Route path="/" element={
-            currentUser ? <Navigate replace to="/dashboard" /> : <PublicCatalog />
-          } />
+          <Route path="/" element={<PublicCatalog />} />
 
           {/* Login y Registro */}
           <Route path="/login" element={
