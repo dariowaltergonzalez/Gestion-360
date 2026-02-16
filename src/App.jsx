@@ -16,6 +16,9 @@ import ClientForm from './pages/clients/ClientForm';
 import UnderConstruction from './pages/UnderConstruction';
 import OffersList from './pages/offers/OffersList';
 import OfferForm from './pages/offers/OfferForm';
+import Settings from './pages/settings/Settings';
+import OffersList from './pages/offers/OffersList';
+import OfferForm from './pages/offers/OfferForm';
 import './App.css';
 
 // Componente para proteger rutas privadas
