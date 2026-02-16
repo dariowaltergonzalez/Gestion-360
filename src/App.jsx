@@ -13,6 +13,7 @@ import CategoriesList from './pages/categories/CategoriesList';
 import CategoryForm from './pages/categories/CategoryForm';
 import ClientsList from './pages/clients/ClientsList';
 import ClientForm from './pages/clients/ClientForm';
+import UnderConstruction from './pages/UnderConstruction';
 import './App.css';
 
 // Componente para proteger rutas privadas
@@ -181,6 +182,13 @@ function App() {
               </PrivateRoute>
             }
           />
+
+          {/* Rutas en Construcción */}
+          <Route path="/compras" element={<PrivateRoute><AdminLayout><UnderConstruction title="Módulo de Compras" /></AdminLayout></PrivateRoute>} />
+          <Route path="/ventas" element={<PrivateRoute><AdminLayout><UnderConstruction title="Módulo de Ventas" /></AdminLayout></PrivateRoute>} />
+          <Route path="/logs" element={<PrivateRoute><AdminLayout><UnderConstruction title="Historial de Logs" /></AdminLayout></PrivateRoute>} />
+          <Route path="/reportes" element={<PrivateRoute><AdminLayout><UnderConstruction title="Reportes y Estadísticas" /></AdminLayout></PrivateRoute>} />
+          <Route path="/config" element={<PrivateRoute><AdminLayout><UnderConstruction title="Configuración del Sistema" /></AdminLayout></PrivateRoute>} />
 
           {/* Redirección por defecto */}
           <Route path="*" element={<Navigate replace to="/" />} />
