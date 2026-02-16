@@ -84,16 +84,18 @@ const ClientForm = () => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.Nombre.trim()) newErrors.Nombre = 'El nombre es obligatorio';
+        if (!formData.Nombre.trim()) newErrors.Nombre = 'El nombre o razón social es obligatorio';
+
         if (formData.Email && !/\S+@\S+\.\S+/.test(formData.Email)) {
             newErrors.Email = 'Email inválido';
         }
-        if (formData.Tipo === 'Proveedor' && !formData.RazonSocial.trim()) {
-            newErrors.RazonSocial = 'La Razón Social es recomendada para proveedores';
-        }
 
         setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
+        const isValid = Object.keys(newErrors).length === 0;
+        if (!isValid) {
+            console.log("Validación fallida:", newErrors);
+        }
+        return isValid;
     };
 
     const handleSubmit = async (e) => {
@@ -102,13 +104,22 @@ const ClientForm = () => {
 
         setIsSaving(true);
         try {
+            // Asegurar que si es proveedor, Nombre y RazonSocial sean consistentes si no hay campo separado
+            const finalData = {
+                ...formData,
+                RazonSocial: formData.Tipo === 'Proveedor' && !formData.RazonSocial
+                    ? formData.Nombre
+                    : formData.RazonSocial
+            };
+
             if (isEditing) {
-                await clientService.updateClient(id, formData);
+                await clientService.updateClient(id, finalData);
             } else {
-                await clientService.createClient(formData);
+                await clientService.createClient(finalData);
             }
             navigate('/clientes');
         } catch (error) {
+            console.error("Error al guardar cliente:", error);
             alert(error.message || "Error al guardar");
         } finally {
             setIsSaving(false);
