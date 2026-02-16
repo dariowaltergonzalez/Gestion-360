@@ -14,6 +14,8 @@ import CategoryForm from './pages/categories/CategoryForm';
 import ClientsList from './pages/clients/ClientsList';
 import ClientForm from './pages/clients/ClientForm';
 import UnderConstruction from './pages/UnderConstruction';
+import OffersList from './pages/offers/OffersList';
+import OfferForm from './pages/offers/OfferForm';
 import './App.css';
 
 // Componente para proteger rutas privadas
