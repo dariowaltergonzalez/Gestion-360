@@ -10,10 +10,16 @@ Roles:
 * SuperAdmin. Es el programador del sistema. Para tareas de configuracion y acceso total.
 Aclaracion: SuperAdmin > Admin > Operador.
 
+1.1 SEGURIDAD Y ACCESOS
+*   **Autenticación:** Gestionada vía Firebase Auth (Email/Password).
+*   **Recuperación de Contraseña (Reset Pass):** Se implementa un flujo de recuperación mediante envío de email automático desde Firebase. El enlace redirige a una página segura para el cambio de credenciales.
+*   **Restricciones de API:** Las claves de API están protegidas mediante restricciones de dominio (HttpReferrers) en Google Cloud Console para prevenir uso no autorizado.
+
 2. EXPERIENCIA DEL CLIENTE (FRONT-END) 
 PAGINA PRINCIPAL (CATALOGO). Esta pagina es publica y no requiere login. El sistema siempre debe iniciar en esta pantalla. El menu lateral no debe estar visible nunca.
 Siempre debe mostrar:
 Aclaracion: Si el navegador detecta una sesion activa de Admin/Operador/SuperAdmin, el sistema redirigira automaticamente al Dashboard. Caso contrario, mostrara el catalogo publico.
+Al realizar Cerrar Sesión (Logout), el sistema debe redirigir siempre a la página de Catálogo Público (Inicio), independientemente de la pantalla donde se encuentre el usuario.
 Parte superior: 
     Logo, Nombre del negocio, Acceso a Registro y Login, Acceso a Carrito, Acceso a Mi Cuenta, Acceso a Cerrar Sesión.
 Parte media:
@@ -71,6 +77,15 @@ Paginación: Siempre presente en la base de la grilla.
 Regla de Visualización en Grillas (Admin): Todas las tablas de gestión (Productos, Contactos, etc.) deben mostrar el universo total de registros, independientemente de su estado. Se implementará un Filtro de Estado (Combo: Todos, Activos, Inactivos). Los registros inactivos deben tener una distinción visual (ej: texto en gris o badge de estado) y permitirán ser reactivados con un solo clic.
 Reporte PDF: Botón para generar un PDF con la info que muestra la grilla según los filtros aplicados. El reporte debe contener logo y datos de la Empresa. Titulo del reporte, fecha y hora de creacion, filtros aplicados y los datos de la grilla. El nombre del archivo debe ser : "Reporte_" + Modelo + "_" + fecha y hora de creacion.pdf, donde Modelo es el nombre de la pantalla.
 Aclaracion: La visibilidad y accion de este boton estara sujeta al perfil del usuario. El sistema validara si el usuario tiene permisos de exportacion antes de mostrarlo.
+
+5.1 GESTIÓN DE OPCIONES NO IMPLEMENTADAS
+Para aquellos módulos que figuran en el menú pero cuya funcionalidad aún no ha sido desarrollada (ej: Compras, Ventas, Reportes), el sistema redirigirá a una **"Página en Construcción"**. Esta página cuenta con una estética moderna, iconos animados y un botón de retorno al Dashboard, manteniendo una experiencia fluida y profesional.
+
+5.2 DISEÑO RESPONSIVO Y ADAPTATIVO
+El sistema debe ser **"Mobile First"** y totalmente responsivo. 
+*   **Catálogo:** Utilizará una grilla fluida (`repeat(auto-fill, minmax(220px, 1fr))`) que permita mostrar tarjetas de productos una al lado de la otra, ajustando automáticamente la cantidad de columnas según el ancho de la pantalla para maximizar el uso del espacio.
+*   **Grillas de Gestión:** En dispositivos móviles, las tablas deben permitir scroll horizontal o transformarse para mantener la legibilidad.
+*   **Menú Lateral:** Se ocultará automáticamente o se transformará en un menú colapsable/hamburguesa en pantallas pequeñas para priorizar el contenido principal.
 
 6. "La Ley" de las Pantallas de Creación/Edición
 Todas las pantallas de creación/edición deben respetar el mismo formato.
