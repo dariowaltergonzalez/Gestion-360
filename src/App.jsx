@@ -1,0 +1,142 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Navbar from './components/layout/Navbar';
+import Sidebar from './components/layout/Sidebar';
+import PublicCatalog from './pages/PublicCatalog';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import ProductsList from './pages/products/ProductsList';
+import ProductForm from './pages/products/ProductForm';
+import CategoriesList from './pages/categories/CategoriesList';
+import CategoryForm from './pages/categories/CategoryForm';
+import './App.css';
+
+// Componente para proteger rutas privadas
+const PrivateRoute = ({ children }) => {
+  const { currentUser } = useAuth();
+  return currentUser ? children : <Navigate replace to="/login" />;
+};
+
+// Layout para la parte administrativa
+const AdminLayout = ({ children }) => {
+  return (
+    <div className="admin-container">
+      <Sidebar />
+      <main className="admin-content">
+        {children}
+      </main>
+    </div>
+  );
+};
+
+function App() {
+  const { currentUser } = useAuth();
+
+  return (
+    <Router>
+      <div className="app-wrapper">
+        <Navbar />
+
+        <Routes>
+          {/* Ruta Pública: Catálogo */}
+          <Route path="/" element={
+            currentUser ? <Navigate replace to="/dashboard" /> : <PublicCatalog />
+          } />
+
+          {/* Login y Registro */}
+          <Route path="/login" element={
+            currentUser ? <Navigate replace to="/dashboard" /> : <Login />
+          } />
+
+          <Route path="/signup" element={
+            currentUser ? <Navigate replace to="/dashboard" /> : <Signup />
+          } />
+
+          {/* Rutas Privadas (Admin/Operador) */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <Dashboard />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/productos"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ProductsList />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/productos/nuevo"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ProductForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/productos/editar/:id"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <ProductForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/categorias"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <CategoriesList />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/categorias/nueva"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <CategoryForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/categorias/editar/:id"
+            element={
+              <PrivateRoute>
+                <AdminLayout>
+                  <CategoryForm />
+                </AdminLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Redirección por defecto */}
+          <Route path="*" element={<Navigate replace to="/" />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
