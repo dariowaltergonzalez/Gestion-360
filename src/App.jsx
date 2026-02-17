@@ -20,6 +20,8 @@ import OfferForm from './pages/offers/OfferForm';
 import Settings from './pages/settings/Settings';
 import PurchasesList from './pages/purchases/PurchasesList';
 import PurchaseForm from './pages/purchases/PurchaseForm';
+import SalesList from './pages/sales/SalesList';
+import SaleForm from './pages/sales/SaleForm';
 import './App.css';
 
 // Componente para proteger rutas privadas
@@ -266,8 +268,39 @@ function App() {
               }
             />
 
+            {/* Ventas */}
+            <Route
+              path="/ventas"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <SalesList />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ventas/nueva"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <SaleForm />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ventas/editar/:id"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <SaleForm />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+
             {/* Rutas en Construcción */}
-            <Route path="/ventas" element={<PrivateRoute><AdminLayout><UnderConstruction title="Módulo de Ventas" /></AdminLayout></PrivateRoute>} />
             <Route path="/logs" element={<PrivateRoute><AdminLayout><UnderConstruction title="Historial de Logs" /></AdminLayout></PrivateRoute>} />
             <Route path="/reportes" element={<PrivateRoute><AdminLayout><UnderConstruction title="Reportes y Estadísticas" /></AdminLayout></PrivateRoute>} />
 

@@ -5,7 +5,6 @@ import {
     Search,
     Filter,
     FileText,
-    Edit,
     CheckCircle2,
     XCircle,
     Clock,
@@ -17,15 +16,15 @@ import {
     Paperclip,
     FileDown
 } from 'lucide-react';
-import { purchaseService } from '../../services/purchaseService';
+import { saleService } from '../../services/saleService'; // NEW Service
 import { priceUtils } from '../../utils/priceUtils';
-import { generatePurchasePDF, generatePurchasesReport } from '../../utils/pdfUtils';
+import { generatePurchasePDF, generateSalesReport } from '../../utils/pdfUtils'; // TODO: Update to generateSalePDF
 import '../../styles/Management.css';
 
-const PurchasesList = () => {
+const SalesList = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [purchases, setPurchases] = useState([]);
+    const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('Todas');
@@ -35,90 +34,76 @@ const PurchasesList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    useEffect(() => {
-        fetchPurchases();
+    // ... (useEffect and fetchSales remain same) ...
 
-        // Cargar mensaje desde la navegación si existe
+    useEffect(() => {
+        fetchSales();
+
         if (location.state?.message) {
             setMessage({ type: 'success', text: location.state.message });
             window.scrollTo(0, 0);
             const timer = setTimeout(() => setMessage({ type: '', text: '' }), 5000);
-            window.history.replaceState({}, document.title);
             return () => clearTimeout(timer);
         }
     }, [location.state]);
 
-    const fetchPurchases = async () => {
+    const fetchSales = async () => {
         try {
             setLoading(true);
-            const data = await purchaseService.getAllPurchases();
-            setPurchases(data);
+            const data = await saleService.getAllSales();
+            setSales(data);
         } catch (error) {
-            console.error("Error fetching purchases:", error);
-            setMessage({ type: 'error', text: 'Error al cargar las compras' });
+            console.error("Error fetching sales:", error);
+            setMessage({ type: 'error', text: 'Error al cargar las ventas' });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleStatusChange = async (purchase, newStatus) => {
-        if (purchase.Estado === 'Recibida') {
-            alert('No se puede cambiar el estado de una compra ya recibida.');
-            return;
-        }
-
-        const confirmMsg = newStatus === 'Recibida'
-            ? '¿Estás seguro de marcar esta compra como RECIBIDA? Esto sumará el stock automáticamente.'
-            : `¿Estás seguro de cambiar el estado a ${newStatus}?`;
-
-        if (!window.confirm(confirmMsg)) return;
-
-        try {
-            await purchaseService.updatePurchaseStatus(purchase.id, newStatus, purchase);
-            setMessage({ type: 'success', text: `Compra ${purchase.Codigo} actualizada a ${newStatus}` });
-            fetchPurchases();
-            window.scrollTo(0, 0);
-            setTimeout(() => setMessage({ type: '', text: '' }), 4000);
-        } catch (error) {
-            console.error("Error updating status:", error);
-            setMessage({ type: 'error', text: 'Error al actualizar el estado' });
-        }
-    };
-
     // Filtrado
-    const filteredPurchases = purchases.filter(purchase => {
+    const filteredSales = sales.filter(sale => {
         const matchesSearch =
-            purchase.Codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            purchase.ProveedorNombre?.toLowerCase().includes(searchTerm.toLowerCase());
+            sale.Codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            sale.ClienteNombre?.toLowerCase().includes(searchTerm.toLowerCase()); // Changed to ClienteNombre
 
-        const matchesStatus = statusFilter === 'Todas' || purchase.Estado === statusFilter;
+        const matchesStatus = statusFilter === 'Todas' || sale.Estado === statusFilter;
 
         return matchesSearch && matchesStatus;
     });
 
-    // Lógica de paginación
-    const totalPages = Math.ceil(filteredPurchases.length / itemsPerPage);
-    const indexOfLastItem = currentPage * itemsPerPage;
-    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-    const currentItems = filteredPurchases.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredSales.length / itemsPerPage);
+    const currentItems = filteredSales.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
     const getStatusBadge = (status) => {
         switch (status) {
-            case 'Recibida': return <span className="badge badge-success"><CheckCircle2 size={12} /> Recibida</span>;
+            case 'Completada': return <span className="badge badge-success"><CheckCircle2 size={12} /> Completada</span>;
             case 'Cancelada': return <span className="badge badge-inactive"><XCircle size={12} /> Cancelada</span>;
-            case 'Pendiente': return <span className="badge badge-warning" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}><Clock size={12} /> Pendiente</span>;
+            case 'Pendiente': return <span className="badge badge-warning"><Clock size={12} /> Pendiente</span>;
             default: return <span className="badge">{status}</span>;
         }
     };
 
+    // Placeholder for PDF generation until generateSalePDF is ready
+    const handleGeneratePDF = (sale) => {
+        // We'll use the existing generator for now, but strictly it should be a Sale PDF
+        // passing 'isSale: true' if we modify the util, or just sending consistent data
+        const pdfData = {
+            ...sale,
+            TipoDocumento: 'Venta'
+        };
+        generatePurchasePDF(pdfData);
+    };
+
     return (
         <div className="management-container">
-            {/* Alertas Sticky */}
             {message.text && (
                 <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mb-4`} style={{ position: 'sticky', top: '20px', zIndex: 1000 }}>
                     {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
                     <div style={{ flex: 1 }}>{message.text}</div>
-                    <button onClick={() => setMessage({ type: '', text: '' })} className="close-btn" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => setMessage({ type: '', text: '' })} className="close-btn">
                         <X size={18} />
                     </button>
                 </div>
@@ -129,22 +114,22 @@ const PurchasesList = () => {
                     <button onClick={() => navigate('/dashboard')} className="btn-secondary">
                         <ArrowLeft size={18} /> Dashboard
                     </button>
-                    <h1>Gestión de Compras (Stock)</h1>
+                    <h1>Gestión de Ventas</h1>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                         className="btn-secondary"
-                        onClick={() => generatePurchasesReport(filteredPurchases)}
-                        disabled={filteredPurchases.length === 0}
+                        onClick={() => generateSalesReport(filteredSales)}
+                        disabled={filteredSales.length === 0}
                         title="Exportar PDF"
                     >
                         <FileDown size={18} /> Reporte PDF
                     </button>
                     <button
                         className="btn-primary"
-                        onClick={() => navigate('/compras/nueva')}
+                        onClick={() => navigate('/ventas/nueva')}
                     >
-                        <Plus size={20} /> Nueva Compra
+                        <Plus size={20} /> Nueva Venta
                     </button>
                 </div>
             </div>
@@ -154,7 +139,7 @@ const PurchasesList = () => {
                     <Search className="search-icon-std" size={20} />
                     <input
                         type="text"
-                        placeholder="Buscar por código o proveedor..."
+                        placeholder="Buscar por código o cliente..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -166,18 +151,15 @@ const PurchasesList = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
                         <option value="Todas">Todos los Estados</option>
+                        <option value="Completada">Completadas</option>
                         <option value="Pendiente">Pendientes</option>
-                        <option value="Recibida">Recibidas</option>
                         <option value="Cancelada">Canceladas</option>
                     </select>
                 </div>
-                <button className="btn-secondary" onClick={() => generatePurchasesReport(filteredPurchases)}>
-                    <FileText size={20} /> Exportar PDF
-                </button>
             </div>
 
             {loading ? (
-                <div className="loading-state">Cargando compras...</div>
+                <div className="loading-state">Cargando ventas...</div>
             ) : (
                 <>
                     <div className="management-card">
@@ -186,7 +168,7 @@ const PurchasesList = () => {
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Código</th>
-                                    <th>Proveedor</th>
+                                    <th>Cliente</th>
                                     <th>Total</th>
                                     <th>Estado</th>
                                     <th style={{ textAlign: 'center' }}>Adjunto</th>
@@ -195,19 +177,19 @@ const PurchasesList = () => {
                             </thead>
                             <tbody>
                                 {currentItems.length > 0 ? (
-                                    currentItems.map((purchase) => (
-                                        <tr key={purchase.id}>
-                                            <td>{purchase.FechaCreacion?.toLocaleDateString()}</td>
-                                            <td><strong>{purchase.Codigo}</strong></td>
-                                            <td>{purchase.ProveedorNombre}</td>
-                                            <td>{priceUtils.formatPrice(purchase.TotalConIVA)}</td>
-                                            <td>{getStatusBadge(purchase.Estado)}</td>
+                                    currentItems.map((sale) => (
+                                        <tr key={sale.id}>
+                                            <td>{sale.FechaCreacion?.toLocaleDateString()}</td>
+                                            <td><strong>{sale.Codigo}</strong></td>
+                                            <td>{sale.ClienteNombre}</td>
+                                            <td>{priceUtils.formatPrice(sale.TotalConIVA)}</td>
+                                            <td>{getStatusBadge(sale.Estado)}</td>
                                             <td style={{ textAlign: 'center' }}>
-                                                {purchase.ArchivoAdjunto && (
+                                                {sale.ArchivoAdjunto && (
                                                     <button
                                                         className="action-icon-btn"
                                                         title="Ver archivo adjunto"
-                                                        onClick={() => window.open(purchase.ArchivoAdjunto, '_blank')}
+                                                        onClick={() => window.open(sale.ArchivoAdjunto, '_blank')}
                                                         style={{ color: '#4361ee' }}
                                                     >
                                                         <Paperclip size={18} />
@@ -215,39 +197,11 @@ const PurchasesList = () => {
                                                 )}
                                             </td>
                                             <td className="actions-cell" style={{ justifyContent: 'center' }}>
-                                                <button
-                                                    className="action-icon-btn"
-                                                    title="Editar"
-                                                    onClick={() => navigate(`/compras/editar/${purchase.id}`)}
-                                                    disabled={purchase.Estado === 'Recibida'}
-                                                >
-                                                    <Edit size={18} />
-                                                </button>
-
-                                                {purchase.Estado === 'Pendiente' && (
-                                                    <>
-                                                        <button
-                                                            className="action-icon-btn"
-                                                            title="Marcar como Recibida"
-                                                            onClick={() => handleStatusChange(purchase, 'Recibida')}
-                                                            style={{ color: 'var(--success)' }}
-                                                        >
-                                                            <CheckCircle2 size={18} />
-                                                        </button>
-                                                        <button
-                                                            className="action-icon-btn action-delete"
-                                                            title="Cancelar"
-                                                            onClick={() => handleStatusChange(purchase, 'Cancelada')}
-                                                        >
-                                                            <XCircle size={18} />
-                                                        </button>
-                                                    </>
-                                                )}
-
+                                                {/* Only PDF and Attachment view actions for now */}
                                                 <button
                                                     className="action-icon-btn"
                                                     title="Ver PDF"
-                                                    onClick={() => generatePurchasePDF(purchase)}
+                                                    onClick={() => handleGeneratePDF(sale)}
                                                 >
                                                     <FileText size={18} />
                                                 </button>
@@ -257,7 +211,7 @@ const PurchasesList = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
-                                            No se encontraron compras.
+                                            No se encontraron ventas.
                                         </td>
                                     </tr>
                                 )}
@@ -267,7 +221,7 @@ const PurchasesList = () => {
 
                     {totalPages > 1 && (
                         <div className="pagination-footer">
-                            <span>Mostrando {indexOfFirstItem + 1} a {Math.min(indexOfLastItem, filteredPurchases.length)} de {filteredPurchases.length} compras</span>
+                            <span>Mostrando {((currentPage - 1) * itemsPerPage) + 1} a {Math.min(currentPage * itemsPerPage, filteredSales.length)} de {filteredSales.length} ventas</span>
                             <div className="pagination-btns" style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button
                                     className="btn-secondary"
@@ -292,4 +246,4 @@ const PurchasesList = () => {
     );
 };
 
-export default PurchasesList;
+export default SalesList;
