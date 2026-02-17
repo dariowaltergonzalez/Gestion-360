@@ -18,6 +18,8 @@ import UnderConstruction from './pages/UnderConstruction';
 import OffersList from './pages/offers/OffersList';
 import OfferForm from './pages/offers/OfferForm';
 import Settings from './pages/settings/Settings';
+import PurchasesList from './pages/purchases/PurchasesList';
+import PurchaseForm from './pages/purchases/PurchaseForm';
 import './App.css';
 
 // Componente para proteger rutas privadas
@@ -232,8 +234,39 @@ function App() {
               }
             />
 
+            {/* Compras / Reposiciones */}
+            <Route
+              path="/compras"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <PurchasesList />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/compras/nueva"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <PurchaseForm />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/compras/editar/:id"
+              element={
+                <PrivateRoute>
+                  <AdminLayout>
+                    <PurchaseForm />
+                  </AdminLayout>
+                </PrivateRoute>
+              }
+            />
+
             {/* Rutas en Construcción */}
-            <Route path="/compras" element={<PrivateRoute><AdminLayout><UnderConstruction title="Módulo de Compras" /></AdminLayout></PrivateRoute>} />
             <Route path="/ventas" element={<PrivateRoute><AdminLayout><UnderConstruction title="Módulo de Ventas" /></AdminLayout></PrivateRoute>} />
             <Route path="/logs" element={<PrivateRoute><AdminLayout><UnderConstruction title="Historial de Logs" /></AdminLayout></PrivateRoute>} />
             <Route path="/reportes" element={<PrivateRoute><AdminLayout><UnderConstruction title="Reportes y Estadísticas" /></AdminLayout></PrivateRoute>} />
