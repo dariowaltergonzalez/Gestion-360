@@ -79,12 +79,27 @@ const ClientsList = ({ initialType = 'Todos' }) => {
             const doc = new jsPDF();
             const now = new Date();
             const timestamp = now.toLocaleString();
-            const fileName = `Reporte_Clientes_${now.getFullYear()}${(now.getMonth() + 1)}${now.getDate()}_${now.getHours()}${now.getMinutes()}.pdf`;
+
+            // Determinar el nombre del archivo y título según el filtro
+            let reportType = '';
+            let reportTitle = '';
+            if (filterType === 'Proveedor') {
+                reportType = 'Proveedores';
+                reportTitle = 'Reporte: Proveedores';
+            } else if (filterType === 'Cliente') {
+                reportType = 'Clientes';
+                reportTitle = 'Reporte: Clientes';
+            } else {
+                reportType = 'Clientes_y_Proveedores';
+                reportTitle = 'Reporte: Clientes y Proveedores';
+            }
+
+            const fileName = `Reporte_${reportType}_${now.getFullYear()}${(now.getMonth() + 1)}${now.getDate()}_${now.getHours()}${now.getMinutes()}.pdf`;
 
             doc.setFontSize(18);
             doc.text("Gestión 360", 14, 20);
             doc.setFontSize(12);
-            doc.text("Reporte: Clientes y Proveedores", 14, 28);
+            doc.text(reportTitle, 14, 28);
             doc.setFontSize(10);
             doc.text(`Fecha: ${timestamp}`, 14, 35);
             doc.text(`Filtros: Tipo: ${filterType} | Estado: ${filterStatus}`, 14, 40);
@@ -131,7 +146,7 @@ const ClientsList = ({ initialType = 'Todos' }) => {
                     <button onClick={() => navigate('/dashboard')} className="btn-secondary">
                         <ArrowLeft size={18} /> Volver
                     </button>
-                    <h1>Gestión de {filterType === 'Todos' ? 'Clientes y Prov.' : `${filterType}s`}</h1>
+                    <h1>Gestión de {filterType === 'Todos' ? 'Clientes y Prov.' : filterType === 'Proveedor' ? 'Proveedores' : 'Clientes'}</h1>
                 </div>
                 <div className="header-actions">
                     <button onClick={exportToPDF} className="btn-secondary" title="Exportar PDF">
