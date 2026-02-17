@@ -49,6 +49,12 @@ export const fileService = {
             const uploadTask = uploadBytesResumable(storageRef, file);
 
             return new Promise((resolve, reject) => {
+                // Timeout de seguridad de 60 segundos
+                const timeoutId = setTimeout(() => {
+                    uploadTask.cancel();
+                    reject(new Error('Tiempo de espera agotado al subir el archivo (60s). Verifique su conexión y que Firebase Storage esté habilitado en la consola.'));
+                }, 60000);
+
                 uploadTask.on(
                     'state_changed',
                     (snapshot) => {
@@ -59,10 +65,23 @@ export const fileService = {
                         }
                     },
                     (error) => {
+                        clearTimeout(timeoutId);
                         console.error('Error al subir archivo:', error);
-                        reject(new Error('Error al subir el archivo. Por favor, intente nuevamente.'));
+
+                        // Mensajes de error más amigables
+                        let errorMsg = 'Error al subir el archivo.';
+                        if (error.code === 'storage/unauthorized') {
+                            errorMsg = 'Permiso denegado: No tiene autorización para subir archivos.';
+                        } else if (error.code === 'storage/canceled') {
+                            errorMsg = 'La subida fue cancelada.';
+                        } else if (error.code === 'storage/unknown') {
+                            errorMsg = 'Ocurrió un error desconocido en Firebase Storage.';
+                        }
+
+                        reject(new Error(errorMsg));
                     },
                     async () => {
+                        clearTimeout(timeoutId);
                         // Subida completada, obtener URL de descarga
                         try {
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);

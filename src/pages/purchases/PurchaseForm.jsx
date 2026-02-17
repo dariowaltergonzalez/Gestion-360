@@ -187,11 +187,12 @@ const PurchaseForm = () => {
                     const pdfFile = new File([pdfBlob], `Orden_${newPurchase.Codigo}.pdf`, { type: 'application/pdf' });
                     const pdfUrl = await fileService.uploadFile(pdfFile, 'orders');
 
-                    // 3. Abrir cliente de correo
+                    // 3. Abrir redacción en Gmail Web (para pruebas o usuarios sin cliente de correo)
                     const subject = encodeURIComponent(`Nueva Orden de Compra #${newPurchase.Codigo} - Gestión 360`);
                     const body = encodeURIComponent(`Estimado Proveedor,\n\nAdjunto encontrará el detalle de la nueva orden de compra #${newPurchase.Codigo}.\n\nPuede descargar el documento PDF desde el siguiente enlace:\n${pdfUrl}\n\nSaludos cordiales,\nGestión 360`);
 
-                    window.open(`mailto:${providerEmail}?subject=${subject}&body=${body}`, '_blank');
+                    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${providerEmail}&su=${subject}&body=${body}`;
+                    window.open(gmailUrl, '_blank');
 
                     // Pequeña pausa para asegurar que el usuario vea lo que pasó
                     await new Promise(resolve => setTimeout(resolve, 1000));
