@@ -13,7 +13,8 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    Paperclip
 } from 'lucide-react';
 import { purchaseService } from '../../services/purchaseService';
 import { priceUtils } from '../../utils/priceUtils';
@@ -177,6 +178,7 @@ const PurchasesList = () => {
                                     <th>Proveedor</th>
                                     <th>Total</th>
                                     <th>Estado</th>
+                                    <th style={{ textAlign: 'center' }}>Adjunto</th>
                                     <th style={{ textAlign: 'center' }}>Acciones</th>
                                 </tr>
                             </thead>
@@ -189,6 +191,18 @@ const PurchasesList = () => {
                                             <td>{purchase.ProveedorNombre}</td>
                                             <td>{priceUtils.formatPrice(purchase.TotalConIVA)}</td>
                                             <td>{getStatusBadge(purchase.Estado)}</td>
+                                            <td style={{ textAlign: 'center' }}>
+                                                {purchase.ArchivoAdjunto && (
+                                                    <button
+                                                        className="action-icon-btn"
+                                                        title="Ver archivo adjunto"
+                                                        onClick={() => window.open(purchase.ArchivoAdjunto, '_blank')}
+                                                        style={{ color: '#4361ee' }}
+                                                    >
+                                                        <Paperclip size={18} />
+                                                    </button>
+                                                )}
+                                            </td>
                                             <td className="actions-cell" style={{ justifyContent: 'center' }}>
                                                 <button
                                                     className="action-icon-btn"
@@ -231,7 +245,7 @@ const PurchasesList = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>
+                                        <td colSpan="7" style={{ textAlign: 'center', padding: '40px' }}>
                                             No se encontraron compras.
                                         </td>
                                     </tr>

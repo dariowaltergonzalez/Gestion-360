@@ -18,6 +18,7 @@ import { productService } from '../../services/productService';
 import { clientService } from '../../services/clientService';
 import { priceUtils } from '../../utils/priceUtils';
 import { generatePurchasePDF } from '../../utils/pdfUtils';
+import FileUpload from '../../components/FileUpload';
 import '../../styles/Management.css';
 
 const PurchaseForm = () => {
@@ -39,7 +40,8 @@ const PurchaseForm = () => {
         FormaPago: 'Efectivo',
         Observaciones: '',
         IVA_Porcentaje: 21,
-        Codigo: ''
+        Codigo: '',
+        ArchivoAdjunto: ''
     });
 
     const [items, setItems] = useState([]);
@@ -76,7 +78,8 @@ const PurchaseForm = () => {
                         FormaPago: purchase.FormaPago || 'Efectivo',
                         Observaciones: purchase.Observaciones || '',
                         IVA_Porcentaje: purchase.IVA_Porcentaje || 21,
-                        Codigo: purchase.Codigo
+                        Codigo: purchase.Codigo,
+                        ArchivoAdjunto: purchase.ArchivoAdjunto || ''
                     });
                     setItems(purchase.Items || []);
                 }
@@ -314,6 +317,15 @@ const PurchaseForm = () => {
                                 <span style={{ color: 'var(--primary-color)' }}>{priceUtils.formatPrice(total)}</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div style={{ marginTop: '1.5rem' }}>
+                        <FileUpload
+                            onFileUploaded={(url) => setFormData(prev => ({ ...prev, ArchivoAdjunto: url }))}
+                            onFileRemoved={() => setFormData(prev => ({ ...prev, ArchivoAdjunto: '' }))}
+                            currentFileUrl={formData.ArchivoAdjunto}
+                            folder="purchases"
+                        />
                     </div>
 
                     <div className="form-group" style={{ marginTop: '1.5rem' }}>

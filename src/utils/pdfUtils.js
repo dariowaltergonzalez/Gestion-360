@@ -92,6 +92,18 @@ export const generatePurchasePDF = (purchase) => {
         doc.setFont(undefined, 'italic');
         doc.text('Observaciones:', 14, finalY + 30);
         doc.text(purchase.Observaciones, 14, finalY + 35);
+        finalY += 15;
+    }
+
+    // --- ARCHIVO ADJUNTO ---
+    if (purchase.ArchivoAdjunto) {
+        doc.setFontSize(8);
+        doc.setTextColor(67, 97, 238); // Color azul para destacar
+        doc.setFont(undefined, 'normal');
+        const adjuntoY = purchase.Observaciones ? finalY + 25 : finalY + 30;
+        doc.text('📎 Esta compra tiene un archivo adjunto', 14, adjuntoY);
+        doc.setTextColor(120, 120, 120);
+        doc.text(`Fecha de carga: ${purchase.FechaCreacion?.toLocaleDateString() || 'N/A'}`, 14, adjuntoY + 5);
     }
 
     doc.setFontSize(8);
