@@ -37,7 +37,9 @@ export const fileService = {
 
             // Generar nombre único para el archivo
             const timestamp = Date.now();
-            const fileName = `${timestamp}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+            // Si es un Blob y no tiene name, usar un nombre genérico
+            const originalName = file.name || `archivo_${timestamp}`;
+            const fileName = `${timestamp}_${originalName.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
             const filePath = `${folder}/${fileName}`;
 
             // Crear referencia en Storage

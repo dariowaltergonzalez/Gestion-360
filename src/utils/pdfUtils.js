@@ -111,6 +111,11 @@ export const generatePurchasePDF = (purchase) => {
     doc.setFont(undefined, 'normal');
     doc.text(`Documento generado por Gestión 360 - ${new Date().toLocaleString()}`, 14, doc.internal.pageSize.height - 10);
 
+    // Si se solicita el Blob para subirlo, retornarlo
+    if (purchase.returnBlob) {
+        return doc.output('blob');
+    }
+
     doc.save(`Compra_${purchase.Codigo}.pdf`);
 };
 

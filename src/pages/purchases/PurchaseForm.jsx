@@ -11,11 +11,13 @@ import {
     Calendar,
     User,
     CreditCard,
-    FileText
+    FileText,
+    Mail
 } from 'lucide-react';
 import { purchaseService } from '../../services/purchaseService';
 import { productService } from '../../services/productService';
 import { clientService } from '../../services/clientService';
+import { fileService } from '../../services/fileService';
 import { priceUtils } from '../../utils/priceUtils';
 import { generatePurchasePDF } from '../../utils/pdfUtils';
 import FileUpload from '../../components/FileUpload';
@@ -31,6 +33,8 @@ const PurchaseForm = () => {
     const [loading, setLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
+    const [sendEmail, setSendEmail] = useState(false);
+    const [providerEmail, setProviderEmail] = useState('');
 
     const [formData, setFormData] = useState({
         Fecha: new Date().toISOString().split('T')[0],
@@ -101,6 +105,8 @@ const PurchaseForm = () => {
                 IdProveedor: value,
                 ProveedorNombre: provider ? provider.Nombre : ''
             }));
+            setProviderEmail(provider?.Email || '');
+            if (!provider?.Email) setSendEmail(false);
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
         }
@@ -163,7 +169,38 @@ const PurchaseForm = () => {
                 TotalConIVA: total
             };
 
-            await purchaseService.createPurchase(purchaseData);
+            const newPurchase = await purchaseService.createPurchase(purchaseData);
+
+            // Si se marcó enviar email, generar PDF, subirlo y abrir cliente de correo
+            if (sendEmail && providerEmail) {
+                try {
+                    // 1. Generar PDF como Blob
+                    const pdfBlob = generatePurchasePDF({
+                        ...purchaseData,
+                        Codigo: newPurchase.Codigo, // Usar el código generado
+                        FechaCreacion: new Date(),
+                        returnBlob: true
+                    });
+
+                    // 2. Subir PDF a Storage
+                    // Crear un objeto File simulado para el servicio
+                    const pdfFile = new File([pdfBlob], `Orden_${newPurchase.Codigo}.pdf`, { type: 'application/pdf' });
+                    const pdfUrl = await fileService.uploadFile(pdfFile, 'orders');
+
+                    // 3. Abrir cliente de correo
+                    const subject = encodeURIComponent(`Nueva Orden de Compra #${newPurchase.Codigo} - Gestión 360`);
+                    const body = encodeURIComponent(`Estimado Proveedor,\n\nAdjunto encontrará el detalle de la nueva orden de compra #${newPurchase.Codigo}.\n\nPuede descargar el documento PDF desde el siguiente enlace:\n${pdfUrl}\n\nSaludos cordiales,\nGestión 360`);
+
+                    window.open(`mailto:${providerEmail}?subject=${subject}&body=${body}`, '_blank');
+
+                    // Pequeña pausa para asegurar que el usuario vea lo que pasó
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                } catch (emailError) {
+                    console.error("Error preparing email:", emailError);
+                    alert("La compra se guardó, pero hubo un error al preparar el email: " + emailError.message);
+                }
+            }
+
             navigate('/compras', { state: { message: 'Compra registrada con éxito' } });
         } catch (error) {
             console.error("Error saving purchase:", error);
@@ -319,6 +356,28 @@ const PurchaseForm = () => {
                         </div>
                     </div>
 
+                    {/* Opción de envío de Email */}
+                    {formData.IdProveedor && providerEmail && (
+                        <div className="form-group checkbox-group" style={{ marginTop: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <input
+                                    type="checkbox"
+                                    id="sendEmail"
+                                    checked={sendEmail}
+                                    onChange={(e) => setSendEmail(e.target.checked)}
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                                <label htmlFor="sendEmail" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: 0 }}>
+                                    <Mail size={18} color="#4361ee" />
+                                    <span>Enviar notificación por email al proveedor</span>
+                                </label>
+                            </div>
+                            <div style={{ marginLeft: '2rem', marginTop: '0.25rem', fontSize: '0.85rem', color: '#64748b' }}>
+                                Se enviará a: <strong>{providerEmail}</strong>
+                            </div>
+                        </div>
+                    )}
+
                     <div style={{ marginTop: '1.5rem' }}>
                         <FileUpload
                             onFileUploaded={(url) => setFormData(prev => ({ ...prev, ArchivoAdjunto: url }))}
@@ -342,8 +401,8 @@ const PurchaseForm = () => {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
